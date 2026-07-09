@@ -12,6 +12,8 @@ import { OperacionMicro } from './pages/OperacionMicro';
 import { ClinicoMeso } from './pages/ClinicoMeso';
 import { ProfesionalesMeso } from './pages/ProfesionalesMeso';
 import { SiauDashboard } from './pages/SiauDashboard';
+import { DafiDashboard } from './pages/DafiDashboard';
+import { EngagementDashboard } from './pages/EngagementDashboard';
 
 export default function App() {
   return (
@@ -25,9 +27,8 @@ export default function App() {
           <Route path="siau" element={<SiauDashboard />} />
           <Route path="clinico" element={<ClinicoMeso />} />
           <Route path="profesionales" element={<ProfesionalesMeso />} />
-          {/* Fallback for others to keep it simple */}
-          <Route path="ejecutivo" element={<Navigate to="/" replace />} />
-          <Route path="engagement" element={<Navigate to="/" replace />} />
+          <Route path="ejecutivo" element={<DafiDashboard />} />
+          <Route path="engagement" element={<EngagementDashboard />} />
         </Route>
       </Routes>
     </Router>

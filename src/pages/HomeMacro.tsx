@@ -196,7 +196,7 @@ export function HomeMacro() {
         </div>
 
         {/* PROF */}
-        <div className="card p-6 flex flex-col justify-between h-[360px] border-amber-100 bg-amber-50/10">
+        <div className="card p-6 flex flex-col justify-between h-[360px] border-amber-100 bg-amber-50/5">
           <div>
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
@@ -205,57 +205,83 @@ export function HomeMacro() {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-black text-slate-800 leading-tight">PROF</h3>
-                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase bg-amber-100 text-amber-800 rounded">En diseño</span>
+                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 rounded">Activo</span>
                 </div>
                 <p className="text-xs font-bold text-slate-400 mt-0.5">Profesionales</p>
               </div>
             </div>
             <p className="text-xs text-slate-500 mt-4 leading-relaxed">
-              Gestión de profesionales, agenda, desempeño y calidad.
+              Gestión de profesionales, balance de cargas asistenciales, NPS de red y prevención de burnout.
             </p>
 
-            <div className="mt-6 border-t border-amber-100 pt-4 flex flex-col items-center">
-              <DesignBarrier />
+            {/* KPIs */}
+            <div className="mt-5 border-t border-slate-50 pt-4">
+              <span className="text-[10px] font-black uppercase text-amber-600 tracking-wider">Indicadores clave</span>
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-medium">NPS Promedio</span>
+                  <span className="text-lg font-black text-slate-800">81.4</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-medium">Sobrecarga</span>
+                  <span className="text-lg font-black text-red-600">2 Alertas</span>
+                </div>
+              </div>
+              <Sparkline data={[82, 80, 83, 79, 81, 80, 81.4]} stroke="#D97706" />
             </div>
           </div>
 
           <button 
-            disabled
-            className="w-full mt-auto py-2.5 border border-amber-200 text-amber-700 bg-amber-50/50 font-bold text-xs rounded-xl cursor-not-allowed text-center"
+            onClick={() => navigate('/profesionales')}
+            className="w-full mt-auto py-2.5 bg-amber-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 hover:bg-amber-700 transition-colors"
           >
-            Próximamente
+            <span>Ir a PROF</span>
+            <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
 
         {/* DAFI */}
-        <div className="card p-6 flex flex-col justify-between h-[360px] border-red-100 bg-red-50/10">
+        <div className="card p-6 flex flex-col justify-between h-[360px] border-blue-100 bg-blue-50/5">
           <div>
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center text-red-600 shrink-0 shadow-sm font-bold text-xl">
+              <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-700 shrink-0 shadow-sm font-bold text-xl">
                 $
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-black text-slate-800 leading-tight">DAFI</h3>
-                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase bg-red-100 text-red-800 rounded">En diseño</span>
+                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 rounded">Activo</span>
                 </div>
                 <p className="text-xs font-bold text-slate-400 mt-0.5">Económico / Financiero</p>
               </div>
             </div>
             <p className="text-xs text-slate-500 mt-4 leading-relaxed">
-              Gestión financiera, costos, facturación y sostenibilidad.
+              Gestión estratégica, ROI por cohorte, unit economics por paciente-mes y simulador de contratos.
             </p>
 
-            <div className="mt-6 border-t border-red-100 pt-4 flex flex-col items-center">
-              <DesignBarrier />
+            {/* KPIs */}
+            <div className="mt-5 border-t border-slate-50 pt-4">
+              <span className="text-[10px] font-black uppercase text-blue-700 tracking-wider">Indicadores clave</span>
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-medium">ROI General</span>
+                  <span className="text-lg font-black text-slate-800">22.4%</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-medium">Margen Neto</span>
+                  <span className="text-lg font-black text-slate-800">24.0%</span>
+                </div>
+              </div>
+              <Sparkline data={[20, 21, 19, 22, 23, 21.8, 22.4]} stroke="#1E40AF" />
             </div>
           </div>
 
           <button 
-            disabled
-            className="w-full mt-auto py-2.5 border border-red-200 text-red-700 bg-red-50/50 font-bold text-xs rounded-xl cursor-not-allowed text-center"
+            onClick={() => navigate('/ejecutivo')}
+            className="w-full mt-auto py-2.5 bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 hover:bg-blue-800 transition-colors"
           >
-            Próximamente
+            <span>Ir a DAFI</span>
+            <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
 
@@ -387,22 +413,22 @@ export function HomeMacro() {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-black text-slate-800 leading-tight">NGAGE</h3>
-                <span className="px-1.5 py-0.5 text-[9px] font-black uppercase bg-orange-100 text-orange-800 rounded">En diseño</span>
+                <span className="px-1.5 py-0.5 text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 rounded">Activo</span>
               </div>
               <p className="text-xs font-bold text-slate-400 mt-0.5">CRM / Engagement</p>
               <p className="text-xs text-slate-500 mt-2 max-w-2xl leading-relaxed">
-                Gestión de relacionamiento, campañas y engagement de pacientes y usuarios.
+                Gestión automatizada de relacionamiento, campañas y optimización omnicanal de adherencia para pacientes TeKer 2.0.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-6">
-            <DesignBarrier />
             <button 
-              disabled
-              className="px-6 py-2.5 border border-orange-200 text-orange-700 bg-orange-50/50 font-bold text-xs rounded-xl cursor-not-allowed whitespace-nowrap"
+              onClick={() => navigate('/engagement')}
+              className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors whitespace-nowrap"
             >
-              Próximamente
+              <span>Ir a Engagement</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
