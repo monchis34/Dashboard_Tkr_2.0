@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  --color-teker-primary: #023D59;
+  --color-teker-cyan: #00AAE1;
+  --color-teker-bg: #F8FAFC;
+  --color-teker-surface: #FFFFFF;
+  --color-teker-text: #1E293B;
+  --color-teker-muted: #94A3B8;
+  
+  --color-teker-success: #10B981;
+  --color-teker-warning: #F59E0B;
+  --color-teker-error: #EF4444;
+  --color-teker-info: #3B82F6;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --animate-slide-up-fade: slideUpFade 0.3s ease-out forwards;
+  --animate-shake: shake 0.4s ease-in-out;
+
+  @keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+}
+
+html, body {
+  @apply bg-teker-bg text-teker-text font-sans antialiased;
+}
+
+.kpi-card {
+  @apply animate-slide-up-fade;
+}
+
+.kpi-value {
+  @apply transition-all duration-1000 ease-out;
+}
+
+.card {
+  @apply bg-white rounded-3xl border border-slate-100 shadow-sm transition-all duration-200;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(2, 61, 89, 0.08);
+}
+
+.alert-critical {
+  @apply animate-shake;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
