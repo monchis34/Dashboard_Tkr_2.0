@@ -18,6 +18,38 @@ import {
   activePlaybooks, PatientRecord 
 } from './ClinicoData';
 
+// Custom Tooltip for Stacked Area Chart that shows percentages
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const total = payload.reduce((sum: number, entry: any) => sum + (entry.value || 0), 0);
+    return (
+      <div className="bg-white p-3.5 border border-slate-100 rounded-2xl shadow-xl space-y-1.5 z-50">
+        <p className="text-xs font-extrabold text-slate-800">{`Periodo: ${label}`}</p>
+        <div className="border-t border-slate-100 pt-1.5 space-y-1 max-w-[200px]">
+          {payload.map((entry: any, index: number) => {
+            const val = entry.value || 0;
+            const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
+            return (
+              <div key={index} className="flex items-center justify-between gap-4 text-[10px]">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                  <span className="text-slate-500 truncate max-w-[120px]">{entry.name}:</span>
+                </div>
+                <span className="font-bold text-slate-800">{val.toLocaleString()} ({pct}%)</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="border-t border-slate-100 pt-1 flex justify-between text-[10px] font-extrabold text-slate-700">
+          <span>Total Activos:</span>
+          <span>{total.toLocaleString()}</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export function ClinicoMeso() {
   // Global filters state
   const [selectedCohort, setSelectedCohort] = useState<string>('All');
@@ -32,6 +64,66 @@ export function ClinicoMeso() {
 
   // Trigger metrics refresh animation state
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Interactive chart state variables
+  const [chartPeriod, setChartPeriod] = useState<'3M' | '6M' | '12M'>('6M');
+  const [showMeta, setShowMeta] = useState<boolean>(true);
+  const [activeCohorts, setActiveCohorts] = useState<string[]>(['crm', 'mental', 'epoc', 'osteo', 'nefro']);
+
+  // Extended historical cohort data for multiple timeframes
+  const chartData = useMemo(() => {
+    const baseData = [
+      { mes: 'Jul 25', crm: 1500, mental: 900, epoc: 500, osteo: 800, nefro: 300 },
+      { mes: 'Ago 25', crm: 1700, mental: 1000, epoc: 600, osteo: 900, nefro: 350 },
+      { mes: 'Sep 25', crm: 1900, mental: 1100, epoc: 700, osteo: 950, nefro: 400 },
+      { mes: 'Oct 25', crm: 2100, mental: 1200, epoc: 800, osteo: 1000, nefro: 450 },
+      { mes: 'Nov 25', crm: 2200, mental: 1300, epoc: 850, osteo: 1100, nefro: 500 },
+      { mes: 'Dic 25', crm: 2300, mental: 1450, epoc: 900, osteo: 1150, nefro: 550 },
+      { mes: 'Ene', crm: 2400, mental: 1540, epoc: 980, osteo: 1200, nefro: 600 },
+      { mes: 'Feb', crm: 2650, mental: 1610, epoc: 1040, osteo: 1250, nefro: 630 },
+      { mes: 'Mar', crm: 2900, mental: 1720, epoc: 1100, osteo: 1300, nefro: 670 },
+      { mes: 'Abr', crm: 3200, mental: 1850, epoc: 1140, osteo: 1410, nefro: 710 },
+      { mes: 'May', crm: 3450, mental: 1980, epoc: 1210, osteo: 1480, nefro: 760 },
+      { mes: 'Jun', crm: 3732, mental: 2110, epoc: 1260, osteo: 1530, nefro: 810 },
+    ];
+
+    if (chartPeriod === '3M') {
+      return baseData.slice(-3);
+    } else if (chartPeriod === '6M') {
+      return baseData.slice(-6);
+    } else {
+      return baseData;
+    }
+  }, [chartPeriod]);
+
+  // Export cohort data to CSV
+  const handleExportCohortCSV = () => {
+    const headers = ['Mes', 'Cardio-Reno-Metabólico (CRM)', 'Salud Mental', 'EPOC / Respiratorio', 'Osteomuscular', 'Nefroprotección', 'Total Pacientes Activos'];
+    const rows = chartData.map(item => [
+      item.mes,
+      activeCohorts.includes('crm') ? item.crm : 0,
+      activeCohorts.includes('mental') ? item.mental : 0,
+      activeCohorts.includes('epoc') ? item.epoc : 0,
+      activeCohorts.includes('osteo') ? item.osteo : 0,
+      activeCohorts.includes('nefro') ? item.nefro : 0,
+      (activeCohorts.includes('crm') ? item.crm : 0) +
+      (activeCohorts.includes('mental') ? item.mental : 0) +
+      (activeCohorts.includes('epoc') ? item.epoc : 0) +
+      (activeCohorts.includes('osteo') ? item.osteo : 0) +
+      (activeCohorts.includes('nefro') ? item.nefro : 0)
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+      + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `t_series_cohortes_activas_${chartPeriod}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -325,47 +417,215 @@ export function ClinicoMeso() {
         <div className="lg:col-span-8">
           <ChartContainer 
             title="Evolución Meso de Cohortes Activas"
-            subtitle="Volumen de pacientes bajo programa en los últimos 6 meses"
+            subtitle={`Volumen de pacientes bajo programa (${chartPeriod === '3M' ? 'últimos 3 meses' : chartPeriod === '6M' ? 'últimos 6 meses' : 'últimos 12 meses'})`}
             height={340}
-            onExport={() => alert('Descargando serie de tiempo de cohortes activas...')}
+            onExport={handleExportCohortCSV}
+            action={
+              <div className="flex items-center gap-3">
+                {/* Period Selectors */}
+                <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                  {(['3M', '6M', '12M'] as const).map((period) => (
+                    <button
+                      key={period}
+                      onClick={() => setChartPeriod(period)}
+                      className={`px-2 py-0.5 text-[9px] font-extrabold rounded-md transition-all ${chartPeriod === period ? 'bg-white text-teker-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                    >
+                      {period}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Show Meta Toggle */}
+                <button
+                  onClick={() => setShowMeta(!showMeta)}
+                  className={`flex items-center gap-1 px-2 py-0.5 text-[9px] font-extrabold rounded-md border transition-all ${showMeta ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}
+                >
+                  <Clock className="h-3 w-3" />
+                  <span>Meta</span>
+                </button>
+              </div>
+            }
           >
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthlyCohortsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorCrm" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#1E40AF" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#1E40AF" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorMental" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorEpoc" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorOsteo" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorNefro" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748B' }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#64748B' }} tickLine={false} axisLine={false} />
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+            <div className="flex flex-col h-full justify-between">
+              
+              {/* Custom Cohort Toggle Pills */}
+              <div className="flex flex-wrap gap-1.5 mb-3 bg-slate-50/50 p-2 rounded-xl border border-slate-100">
+                {[
+                  { id: 'crm', label: 'CRM', color: '#1E3A8A' },
+                  { id: 'mental', label: 'Salud Mental', color: '#1E40AF' },
+                  { id: 'epoc', label: 'EPOC', color: '#3B82F6' },
+                  { id: 'osteo', label: 'Osteomuscular', color: '#F59E0B' },
+                  { id: 'nefro', label: 'Nefroprotección', color: '#6366F1' },
+                ].map((cohort) => {
+                  const isActive = activeCohorts.includes(cohort.id);
+                  return (
+                    <button
+                      key={cohort.id}
+                      onClick={() => {
+                        if (isActive) {
+                          if (activeCohorts.length > 1) {
+                            setActiveCohorts(activeCohorts.filter(c => c !== cohort.id));
+                          }
+                        } else {
+                          setActiveCohorts([...activeCohorts, cohort.id]);
+                        }
+                      }}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-bold transition-all shadow-sm"
+                      style={{
+                        backgroundColor: isActive ? `${cohort.color}15` : '#FFFFFF',
+                        color: isActive ? cohort.color : '#64748B',
+                        borderColor: isActive ? cohort.color : '#E2E8F0',
+                      }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cohort.color }} />
+                      <span>{cohort.label}</span>
+                      {isActive ? (
+                        <Check className="h-2.5 w-2.5 ml-0.5" style={{ color: cohort.color }} />
+                      ) : (
+                        <span className="text-slate-300 font-normal ml-0.5">+</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Warnings for short period analysis */}
+              {chartPeriod === '3M' && (
+                <div className="mb-2 px-2.5 py-1 bg-amber-50 text-amber-800 rounded-lg border border-amber-200 flex items-center gap-1.5 text-[9px] font-semibold animate-pulse">
+                  <span className="text-amber-500">⚠</span>
+                  <span>Se recomienda un período de 6 a 12 meses para tendencias de cohortes.</span>
+                </div>
+              )}
+
+              {/* Chart Viewport */}
+              <div className="flex-1 w-full min-h-[190px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorCrm" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#1E3A8A" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#1E3A8A" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorMental" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#1E40AF" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#1E40AF" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorEpoc" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorOsteo" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorNefro" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="mes" tick={{ fontSize: 9, fill: '#64748B', fontWeight: 'bold' }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 9, fill: '#64748B', fontWeight: 'bold' }} tickLine={false} axisLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                    <RechartsTooltip content={<CustomTooltip />} />
+                    
+                    {activeCohorts.includes('crm') && (
+                      <Area 
+                        type="monotone" 
+                        name="Cardio-Reno-Metabólico (CRM)" 
+                        dataKey="crm" 
+                        stroke="#1E3A8A" 
+                        strokeWidth={2} 
+                        fillOpacity={1} 
+                        fill="url(#colorCrm)" 
+                        stackedId="1" 
+                        cursor="pointer"
+                        onClick={() => setSelectedCohort('Cardio-Reno-Metabólico')}
+                      />
+                    )}
+                    {activeCohorts.includes('mental') && (
+                      <Area 
+                        type="monotone" 
+                        name="Salud Mental" 
+                        dataKey="mental" 
+                        stroke="#1E40AF" 
+                        strokeWidth={1.5} 
+                        fillOpacity={1} 
+                        fill="url(#colorMental)" 
+                        stackedId="1" 
+                        cursor="pointer"
+                        onClick={() => setSelectedCohort('Salud Mental')}
+                      />
+                    )}
+                    {activeCohorts.includes('epoc') && (
+                      <Area 
+                        type="monotone" 
+                        name="EPOC / Respiratorio" 
+                        dataKey="epoc" 
+                        stroke="#3B82F6" 
+                        strokeWidth={1.5} 
+                        fillOpacity={1} 
+                        fill="url(#colorEpoc)" 
+                        stackedId="1" 
+                        cursor="pointer"
+                        onClick={() => setSelectedCohort('EPOC')}
+                      />
+                    )}
+                    {activeCohorts.includes('osteo') && (
+                      <Area 
+                        type="monotone" 
+                        name="Osteomuscular" 
+                        dataKey="osteo" 
+                        stroke="#F59E0B" 
+                        strokeWidth={1.5} 
+                        fillOpacity={1} 
+                        fill="url(#colorOsteo)" 
+                        stackedId="1" 
+                        cursor="pointer"
+                        onClick={() => setSelectedCohort('Osteomuscular')}
+                      />
+                    )}
+                    {activeCohorts.includes('nefro') && (
+                      <Area 
+                        type="monotone" 
+                        name="Nefroprotección" 
+                        dataKey="nefro" 
+                        stroke="#6366F1" 
+                        strokeWidth={1.5} 
+                        fillOpacity={1} 
+                        fill="url(#colorNefro)" 
+                        stackedId="1" 
+                        cursor="pointer"
+                        onClick={() => setSelectedCohort('All')}
+                      />
+                    )}
+
+                    {/* Reference Line for Target (Meta) */}
+                    {showMeta && (
+                      <g>
+                        <line x1="0" y1="50" x2="800" y2="50" stroke="#EF4444" strokeWidth={1} strokeDasharray="4 4" />
+                        <text x="10" y="42" fill="#EF4444" fontSize="8" fontWeight="bold">Meta Anual (7,500 pac.)</text>
+                      </g>
+                    )}
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Bottom Information Bar & Growth Badge */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 mt-2 pt-2 border-t border-slate-50 text-[9px]">
+                <div className="flex items-center gap-1 text-slate-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Actualización: <strong className="text-slate-600">Diaria T+1 (02:00 AM)</strong></span>
+                </div>
                 
-                <Area type="monotone" name="Cardio-Reno-Metabólico (CRM)" dataKey="crm" stroke="#1E40AF" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCrm)" stackedId="1" />
-                <Area type="monotone" name="Salud Mental" dataKey="mental" stroke="#3B82F6" strokeWidth={2} fillOpacity={1} fill="url(#colorMental)" stackedId="1" />
-                <Area type="monotone" name="EPOC / Respiratorio" dataKey="epoc" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#colorEpoc)" stackedId="1" />
-                <Area type="monotone" name="Osteomuscular" dataKey="osteo" stroke="#F59E0B" strokeWidth={2} fillOpacity={1} fill="url(#colorOsteo)" stackedId="1" />
-                <Area type="monotone" name="Nefroprotección" dataKey="nefro" stroke="#6366F1" strokeWidth={2} fillOpacity={1} fill="url(#colorNefro)" stackedId="1" />
-              </AreaChart>
-            </ResponsiveContainer>
+                <div className="flex items-center gap-1.5">
+                  <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-150 rounded-md font-bold text-[8px] uppercase tracking-wider">
+                    📈 CRM +55.5% (6M)
+                  </span>
+                  <span className="text-slate-400 font-medium">Clic en el área para drill-down</span>
+                </div>
+              </div>
+
+            </div>
           </ChartContainer>
         </div>
 
