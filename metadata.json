@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "TeKer 2.0 - Clínico GIRIS",
+  "description": "Tablero Clínico de Gestión Integral de Pacientes Crónicos (GIRIS) para TeKer 2.0, enfocado en resultados en salud, adherencia y gestión de cohortes.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
